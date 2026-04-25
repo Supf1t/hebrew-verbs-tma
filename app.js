@@ -35,19 +35,27 @@ const storage = {
 };
 
 function initApp() {
-    const select = document.getElementById('group-select');
-    groups.forEach(g => {
-        const opt = document.createElement('option');
-        opt.value = g.id;
-        opt.textContent = g.name;
-        select.appendChild(opt);
-    });
-    
-    // Загружаем статистику
-    storage.load('verbs_stats', (data) => {
-        if (data) userStats = data;
-        updateProgressUI();
-        nextQuestion();
+    storage.load('custom_verbs', (customData) => {
+        if (customData && customData.length > 0) {
+            // Добавляем новую группу для сгенерированных
+            groups.push({ id: 999, name: "✨ Мои сгенерированные", color: '#8b5cf6' });
+            verbsData.push(...customData);
+        }
+
+        const select = document.getElementById('group-select');
+        groups.forEach(g => {
+            const opt = document.createElement('option');
+            opt.value = g.id;
+            opt.textContent = g.name;
+            select.appendChild(opt);
+        });
+        
+        // Загружаем статистику
+        storage.load('verbs_stats', (data) => {
+            if (data) userStats = data;
+            updateProgressUI();
+            nextQuestion();
+        });
     });
 }
 
@@ -279,12 +287,76 @@ async function askAi(type) {
     }
 }
 
+// AI Word Generation
+function openGenModal() {
+    document.getElementById('gen-modal').style.display = 'block';
+    document.getElementById('gen-status').textContent = '';
+    document.getElementById('gen-input').value = '';
+}
+
+function closeGenModal() {
+    document.getElementById('gen-modal').style.display = 'none';
+}
+
+async function generateWords() {
+    const input = document.getElementById('gen-input').value.trim();
+    if (!input) return;
+    
+    const statusEl = document.getElementById('gen-status');
+    statusEl.textContent = "ИИ думает... Это займет 10-20 секунд.";
+    
+    try {
+        const response = await fetch(`${BACKEND_URL}/generate-words`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: input })
+        });
+        const data = await response.json();
+        
+        if (data.error) throw new Error(data.error);
+        if (!data.words || data.words.length === 0) throw new Error("Пустой ответ от ИИ");
+        
+        const newVerbs = data.words.map((w, i) => ({
+            id: 'c_' + Date.now() + '_' + i,
+            groupId: 999,
+            hebrew: w.hebrew,
+            russian: w.russian
+        }));
+        
+        storage.load('custom_verbs', (existing) => {
+            const allCustom = (existing || []).concat(newVerbs);
+            storage.save('custom_verbs', allCustom);
+            
+            if (!groups.find(g => g.id === 999)) {
+                groups.push({ id: 999, name: "✨ Мои сгенерированные", color: '#8b5cf6' });
+                const select = document.getElementById('group-select');
+                const opt = document.createElement('option');
+                opt.value = 999;
+                opt.textContent = "✨ Мои сгенерированные";
+                select.appendChild(opt);
+            }
+            verbsData.push(...newVerbs);
+            
+            statusEl.textContent = `Успешно добавлено ${newVerbs.length} слов!`;
+            setTimeout(() => {
+                closeGenModal();
+                if (isDictView) renderDictionary();
+            }, 1500);
+        });
+        
+    } catch(e) {
+        statusEl.textContent = "Ошибка: " + e.message;
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     initApp();
 });
 
-// Закрытие модалки при клике вне её
+// Закрытие модалок при клике вне
 window.onclick = function (event) {
-    const modal = document.getElementById('ai-modal');
-    if (event.target == modal) closeModal();
+    const aiModal = document.getElementById('ai-modal');
+    const genModal = document.getElementById('gen-modal');
+    if (event.target == aiModal) closeModal();
+    if (event.target == genModal) closeGenModal();
 }

@@ -38,6 +38,7 @@
             </div>
 
             <div id="dict-view" style="display: none;" class="card" style="padding: 10px;">
+                <button onclick="openGenModal()" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 8px; background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%); color: white; font-weight: bold; cursor: pointer; border: none; font-size: 16px;">🪄 Сгенерировать новые слова</button>
                 <div id="dict-content"></div>
             </div>
         </main>
@@ -57,10 +58,20 @@
                     <button onclick="backToAiMenu()">Назад</button>
                 </div>
             </div>
+        <!-- Модальное окно генерации слов -->
+        <div id="gen-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeGenModal()">&times;</span>
+                <h3>🪄 Сгенерировать слова</h3>
+                <p style="font-size: 14px; opacity: 0.8; margin-bottom: 15px;">Например: "10 глаголов для путешествий"</p>
+                <input type="text" id="gen-input" placeholder="Ваш запрос..." style="width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid var(--primary-color); box-sizing: border-box; background: var(--bg-color); color: var(--text-color); font-size: 16px;">
+                <button onclick="generateWords()" style="width: 100%; padding: 12px; border-radius: 8px; background: var(--primary-color); color: white; font-weight: bold; cursor: pointer; border: none; font-size: 16px;">Создать</button>
+                <p id="gen-status" style="margin-top: 10px; font-weight: bold; text-align: center; color: var(--primary-color);"></p>
+            </div>
         </div>
     </div>
 
-    <script src="app.js?v=2.0"></script>
+    <script src="app.js?v=2.1"></script>
 </body>
 
 </html>
