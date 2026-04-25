@@ -26,7 +26,7 @@ function initApp() {
 function changeGroup() {
     const select = document.getElementById('group-select');
     currentGroup = parseInt(select.value);
-    
+
     if (currentGroup !== 0) {
         const groupInfo = groups.find(g => g.id === currentGroup);
         document.documentElement.style.setProperty('--primary-color', groupInfo.color);
@@ -45,19 +45,19 @@ function getRandomWords(wordsArray, count, excludeWord) {
 function nextQuestion() {
     isAnswered = false;
     document.getElementById('next-btn').style.display = 'none';
-    
+
     // Фильтруем по группе
     let pool = currentGroup === 0 ? verbsData : verbsData.filter(w => w.groupId === currentGroup);
-    
+
     // Выбираем случайное правильное слово
     currentWord = pool[Math.floor(Math.random() * pool.length)];
-    
+
     // Выбираем 3 неправильных варианта из той же группы (или глобально, если мало слов)
     let wrongOptions = getRandomWords(pool, 3, currentWord);
     if (wrongOptions.length < 3) {
         wrongOptions = getRandomWords(verbsData, 3, currentWord); // добираем из глобального пула
     }
-    
+
     // Собираем варианты и перемешиваем
     currentOptions = [
         { ...currentWord, correct: true },
@@ -102,13 +102,13 @@ function checkAnswer(isCorrect, index) {
     } else {
         tg.HapticFeedback.notificationOccurred('error');
     }
-    
+
     document.getElementById('next-btn').style.display = 'block';
     document.getElementById('ai-section').style.display = 'block'; // Показываем ИИ только после ответа
 }
 
 // AI Functions
-const BACKEND_URL = "https://hebrew-verbs-tma.onrender.com"; // Постоянный адрес на Render
+const BACKEND_URL = "https://cavalry-amends-nimble.ngrok-free.dev"; // Обновлено через ngrok
 
 function showAiMenu() {
     document.getElementById('ai-modal').style.display = 'block';
@@ -151,7 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Закрытие модалки при клике вне её
-window.onclick = function(event) {
+window.onclick = function (event) {
     const modal = document.getElementById('ai-modal');
     if (event.target == modal) closeModal();
 }
