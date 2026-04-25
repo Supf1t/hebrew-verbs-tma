@@ -23,8 +23,31 @@
             <div id="quiz-container" class="card">
                 <h2>Загрузка...</h2>
             </div>
+
+            <!-- ИИ Помощник -->
+            <div id="ai-section" style="display: none; margin-top: 15px;">
+                <button class="ai-btn" onclick="showAiMenu()">✨ Спросить ИИ</button>
+            </div>
+
             <button id="next-btn" class="tg-btn" style="display: none;" onclick="nextQuestion()">Следующее слово ➔</button>
         </main>
+
+        <!-- Модальное окно ИИ -->
+        <div id="ai-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <div id="ai-menu">
+                    <h3>Что хочешь узнать?</h3>
+                    <button onclick="askAi('example')">📝 Пример предложения</button>
+                    <button onclick="askAi('plural')">👥 Множественное число</button>
+                    <button onclick="askAi('binyan')">🏗️ Объясни биньян</button>
+                </div>
+                <div id="ai-response" style="display: none;">
+                    <p id="ai-text">Загрузка...</p>
+                    <button onclick="backToAiMenu()">Назад</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="app.js"></script>

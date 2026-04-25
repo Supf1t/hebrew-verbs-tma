@@ -104,8 +104,54 @@ function checkAnswer(isCorrect, index) {
     }
     
     document.getElementById('next-btn').style.display = 'block';
+    document.getElementById('ai-section').style.display = 'block'; // Показываем ИИ только после ответа
+}
+
+// AI Functions
+const BACKEND_URL = "http://localhost:8000"; // Позже заменим на реальный адрес через туннель
+
+function showAiMenu() {
+    document.getElementById('ai-modal').style.display = 'block';
+    backToAiMenu();
+}
+
+function closeModal() {
+    document.getElementById('ai-modal').style.display = 'none';
+}
+
+function backToAiMenu() {
+    document.getElementById('ai-menu').style.display = 'block';
+    document.getElementById('ai-response').style.display = 'none';
+}
+
+async function askAi(type) {
+    document.getElementById('ai-menu').style.display = 'none';
+    document.getElementById('ai-response').style.display = 'block';
+    document.getElementById('ai-text').textContent = "ИИ думает...";
+
+    try {
+        const response = await fetch(`${BACKEND_URL}/ai`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                word: currentWord.hebrew,
+                russian: currentWord.russian,
+                type: type
+            })
+        });
+        const data = await response.json();
+        document.getElementById('ai-text').innerHTML = data.answer.replace(/\n/g, '<br>');
+    } catch (e) {
+        document.getElementById('ai-text').textContent = "Ошибка: не удалось связаться с ИИ. Проверьте, запущен ли бот и туннель.";
+    }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
     initApp();
 });
+
+// Закрытие модалки при клике вне её
+window.onclick = function(event) {
+    const modal = document.getElementById('ai-modal');
+    if (event.target == modal) closeModal();
+}
