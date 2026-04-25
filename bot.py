@@ -26,8 +26,20 @@ bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 ai_client = AsyncOpenAI(api_key=OPENAI_API_KEY)
 
+from contextlib import asynccontextmanager
+
+# Управление жизненным циклом (запускаем бота вместе с сервером)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("Запускаем бота...")
+    task = asyncio.create_task(dp.start_polling(bot))
+    yield
+    print("Останавливаем бота...")
+    task.cancel()
+    await bot.session.close()
+
 # Инициализация API сервера (FastAPI)
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 # Настройка CORS, чтобы WebApp мог делать запросы к боту
 app.add_middleware(
@@ -78,18 +90,6 @@ async def start_cmd(message: types.Message):
         reply_markup=builder.as_markup()
     )
 
-async def run_bot():
-    print("Бот запущен...")
-    await dp.start_polling(bot)
-
-async def run_api():
-    config = uvicorn.Config(app, host="0.0.0.0", port=8000, log_level="info")
-    server = uvicorn.Server(config)
-    await server.serve()
-
-async def main():
-    # Запускаем бота и API параллельно
-    await asyncio.gather(run_bot(), run_api())
-
 if __name__ == "__main__":
-    asyncio.run(main())
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
