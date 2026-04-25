@@ -70,6 +70,55 @@ function changeGroup() {
         document.documentElement.style.setProperty('--primary-color', '#3b82f6');
     }
     nextQuestion();
+    if (isDictView) renderDictionary();
+}
+
+let isDictView = false;
+function toggleDictionary() {
+    isDictView = !isDictView;
+    if (isDictView) {
+        document.getElementById('quiz-view').style.display = 'none';
+        document.getElementById('dict-view').style.display = 'block';
+        document.getElementById('dict-btn').textContent = "⬅️ К викторине";
+        renderDictionary();
+    } else {
+        document.getElementById('quiz-view').style.display = 'block';
+        document.getElementById('dict-view').style.display = 'none';
+        document.getElementById('dict-btn').textContent = "📚 Мой словарь";
+    }
+}
+
+function renderDictionary() {
+    let pool = currentGroup === 0 ? verbsData : verbsData.filter(w => w.groupId === currentGroup);
+    
+    // Сначала невыученные, потом выученные
+    const sorted = [...pool].sort((a, b) => {
+        const aL = userStats.learned.includes(a.id);
+        const bL = userStats.learned.includes(b.id);
+        return aL - bL; 
+    });
+
+    const content = sorted.map(w => {
+        const isLearned = userStats.learned.includes(w.id);
+        return `
+            <div class="dict-item">
+                <div style="text-align: left;">
+                    <div style="font-size: 24px; font-family: 'David', sans-serif; font-weight: bold; margin-bottom: 4px;">${w.hebrew}</div>
+                    <div style="font-size: 16px; opacity: 0.9;">${w.russian}</div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="margin-bottom: 8px;">
+                        <span class="dict-status ${isLearned ? 'status-learned' : 'status-learning'}">
+                            ${isLearned ? '✓ Выучено' : 'Учим'}
+                        </span>
+                    </div>
+                    <button onclick="speakHebrew('${w.hebrew}', event)" style="background: none; border: none; font-size: 22px; cursor: pointer;">🔊</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    document.getElementById('dict-content').innerHTML = content;
 }
 
 function getRandomWords(wordsArray, count, excludeWord) {

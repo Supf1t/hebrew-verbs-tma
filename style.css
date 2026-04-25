@@ -68,6 +68,26 @@ header {
     width: 100%;
 }
 
+/* Словарь */
+.dict-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--primary-color);
+    opacity: 0.9;
+}
+.dict-item:last-child { border-bottom: none; }
+
+.dict-status {
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-weight: bold;
+}
+.status-learned { background: #10b981; color: white; }
+.status-learning { background: var(--bg-color); color: var(--text-color); border: 1px solid var(--primary-color); }
+
 /* Modal Styles */
 .modal {
     display: none;
