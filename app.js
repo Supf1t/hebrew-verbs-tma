@@ -318,58 +318,74 @@ async function generateWords() {
     }
     
     const statusEl = document.getElementById('gen-status');
-    statusEl.textContent = "ИИ думает... Это займет 10-20 секунд.";
-    
-    const promptStr = `Сгенерируй ${amount} глаголов на тему: ${topic}`;
-    
-    try {
-        const response = await fetch(`${BACKEND_URL}/generate-words`, {
+    const today = new Date().toISOString().split('T')[0];
+
+    // Проверка лимитов
+    storage.load('gen_limits', (limitData) => {
+        let stats = limitData || { date: today, count: 0 };
+        
+        if (stats.date !== today) {
+            stats.date = today;
+            stats.count = 0;
+        }
+
+        if (stats.count >= 3) {
+            statusEl.textContent = "Лимит исчерпан (3/3 в день). Ждем вас завтра!";
+            return;
+        }
+
+        statusEl.textContent = "ИИ думает... Это займет 10-20 секунд.";
+        const promptStr = `Сгенерируй ${amount} глаголов на тему: ${topic}`;
+        
+        fetch(`${BACKEND_URL}/generate-words`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ prompt: promptStr })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) throw new Error(data.error);
+            if (!data.words || data.words.length === 0) throw new Error("Пустой ответ от ИИ");
+            
+            const newGroupId = Date.now();
+            const groupName = "✨ " + topic;
+            
+            const newVerbs = data.words.map((w, i) => ({
+                id: 'c_' + newGroupId + '_' + i,
+                groupId: newGroupId,
+                groupName: groupName,
+                hebrew: w.hebrew,
+                russian: w.russian
+            }));
+            
+            storage.load('custom_verbs', (existing) => {
+                const allCustom = (existing || []).concat(newVerbs);
+                storage.save('custom_verbs', allCustom);
+                
+                // Сохраняем использование лимита
+                stats.count++;
+                storage.save('gen_limits', stats);
+
+                groups.push({ id: newGroupId, name: groupName, color: '#8b5cf6' });
+                const select = document.getElementById('group-select');
+                const opt = document.createElement('option');
+                opt.value = newGroupId;
+                opt.textContent = groupName;
+                select.appendChild(opt);
+                
+                verbsData.push(...newVerbs);
+                
+                statusEl.textContent = `Группа "${topic}" успешно создана! (${stats.count}/3 за сегодня)`;
+                setTimeout(() => {
+                    closeGenModal();
+                    if (isDictView) renderDictionary();
+                }, 2000);
+            });
+        })
+        .catch(e => {
+            statusEl.textContent = "Ошибка: " + e.message;
         });
-        const data = await response.json();
-        
-        if (data.error) throw new Error(data.error);
-        if (!data.words || data.words.length === 0) throw new Error("Пустой ответ от ИИ");
-        
-        const newGroupId = Date.now(); // Уникальный ID для новой группы
-        const groupName = "✨ " + topic;
-        
-        const newVerbs = data.words.map((w, i) => ({
-            id: 'c_' + newGroupId + '_' + i,
-            groupId: newGroupId,
-            groupName: groupName, // Сохраняем имя группы прямо в слове
-            hebrew: w.hebrew,
-            russian: w.russian
-        }));
-        
-        storage.load('custom_verbs', (existing) => {
-            const allCustom = (existing || []).concat(newVerbs);
-            storage.save('custom_verbs', allCustom);
-            
-            // Создаем новую группу
-            groups.push({ id: newGroupId, name: groupName, color: '#8b5cf6' });
-            
-            // Добавляем в выпадающий список
-            const select = document.getElementById('group-select');
-            const opt = document.createElement('option');
-            opt.value = newGroupId;
-            opt.textContent = groupName;
-            select.appendChild(opt);
-            
-            verbsData.push(...newVerbs);
-            
-            statusEl.textContent = `Группа "${topic}" (${newVerbs.length} слов) успешно создана!`;
-            setTimeout(() => {
-                closeGenModal();
-                if (isDictView) renderDictionary();
-            }, 2000);
-        });
-        
-    } catch(e) {
-        statusEl.textContent = "Ошибка: " + e.message;
-    }
+    });
 }
 
 document.addEventListener("DOMContentLoaded", () => {

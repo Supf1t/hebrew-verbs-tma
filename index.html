@@ -32,6 +32,7 @@
                 <!-- ИИ Помощник -->
                 <div id="ai-section" style="display: none; margin-top: 15px;">
                     <button class="ai-btn" onclick="showAiMenu()">✨ Спросить ИИ</button>
+                    <p style="font-size: 11px; opacity: 0.6; margin-top: 5px; text-align: center;">* Первый запрос может занять 30-40 сек.</p>
                 </div>
 
                 <button id="next-btn" class="tg-btn" style="display: none;" onclick="nextQuestion()">Следующее слово ➔</button>
@@ -65,6 +66,8 @@
         <div class="modal-content">
             <span class="close" onclick="closeGenModal()">&times;</span>
             <h3>🪄 Сгенерировать слова</h3>
+            <p style="font-size: 12px; color: var(--primary-color); margin-bottom: 10px; font-weight: bold;">⚠️ Лимит: 3 группы в день</p>
+            <p style="font-size: 11px; opacity: 0.7; margin-bottom: 15px;">* ИИ может просыпаться до 40 секунд.</p>
             
             <div style="margin-bottom: 12px; text-align: left;">
                 <label style="font-size: 14px; opacity: 0.8; font-weight: bold;">Тема (например: Путешествие):</label>
@@ -81,7 +84,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=2.4"></script>
+    <script src="app.js?v=2.5"></script>
 </body>
 
 </html>
