@@ -108,7 +108,7 @@ function checkAnswer(isCorrect, index) {
 }
 
 // AI Functions
-const BACKEND_URL = "http://localhost:8000"; // Позже заменим на реальный адрес через туннель
+const BACKEND_URL = "https://cavalry-amends-nimble.ngrok-free.dev"; // Обновлено через ngrok
 
 function showAiMenu() {
     document.getElementById('ai-modal').style.display = 'block';
