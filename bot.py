@@ -7,8 +7,8 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 # Вставьте ваш токен сюда
 BOT_TOKEN = "8608977060:AAHa8TP0Mk6RxgGERhUqbufvkr5bvDG1Xfg"
-# Ссылка на веб-приложение (позже заменим на реальный URL, например ngrok или GitHub Pages)
-WEBAPP_URL = "https://google.com"
+# Ссылка на веб-приложение
+WEBAPP_URL = "https://supf1t.github.io/hebrew-verbs-tma/"
 
 logging.basicConfig(level=logging.INFO)
 

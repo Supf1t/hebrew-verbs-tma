@@ -59,16 +59,17 @@ header {
 .quiz-option {
     display: block;
     width: 100%;
-    padding: 12px;
+    padding: 16px;
     margin: 10px 0;
     background-color: var(--bg-color);
     border: 1px solid var(--primary-color);
     color: var(--text-color);
     border-radius: 8px;
-    font-size: 18px;
+    font-size: 24px; /* Увеличенный шрифт для иврита */
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
-    font-family: "David", "Arial", sans-serif; /* Для корректного отображения иврита */
+    font-family: "David", "Arial", sans-serif;
 }
 
 .quiz-option:active {

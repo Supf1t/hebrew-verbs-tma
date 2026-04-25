@@ -70,7 +70,7 @@ function nextQuestion() {
 function renderQuiz() {
     const container = document.getElementById('quiz-container');
     container.innerHTML = `
-        <h2 style="margin-bottom: 20px; font-size: 24px;">${currentWord.russian}</h2>
+        <h2 style="margin-bottom: 24px; font-size: 32px; font-weight: bold;">${currentWord.russian}</h2>
         ${currentOptions.map((opt, index) => `
             <button class="quiz-option" id="btn-${index}" onclick="checkAnswer(${opt.correct}, ${index})">
                 ${opt.hebrew}
