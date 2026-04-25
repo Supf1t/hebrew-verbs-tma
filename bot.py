@@ -32,6 +32,8 @@ from contextlib import asynccontextmanager
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Запускаем бота...")
+    # Удаляем вебхук, чтобы поллинг работал корректно
+    await bot.delete_webhook(drop_pending_updates=True)
     task = asyncio.create_task(dp.start_polling(bot))
     yield
     print("Останавливаем бота...")
