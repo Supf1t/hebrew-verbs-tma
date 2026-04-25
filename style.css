@@ -1,0 +1,90 @@
+:root {
+    --bg-color: #f3f4f6;
+    --text-color: #1f2937;
+    --card-bg: #ffffff;
+    --primary-color: #3b82f6;
+    --border-radius: 12px;
+}
+
+/* Адаптация под цвета Telegram */
+body.tg-dark {
+    --bg-color: var(--tg-theme-bg-color, #1f2937);
+    --text-color: var(--tg-theme-text-color, #f3f4f6);
+    --card-bg: var(--tg-theme-secondary-bg-color, #374151);
+    --primary-color: var(--tg-theme-button-color, #3b82f6);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 16px;
+    display: flex;
+    justify-content: center;
+    transition: background-color 0.3s ease;
+}
+
+#app {
+    width: 100%;
+    max-width: 500px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+#group-select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--primary-color);
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    font-size: 16px;
+    outline: none;
+    margin-top: 10px;
+    width: 100%;
+    max-width: 250px;
+}
+
+.card {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.quiz-option {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    background-color: var(--bg-color);
+    border: 1px solid var(--primary-color);
+    color: var(--text-color);
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: "David", "Arial", sans-serif; /* Для корректного отображения иврита */
+}
+
+.quiz-option:active {
+    background-color: var(--primary-color);
+    color: #fff;
+}
+
+.tg-btn {
+    width: 100%;
+    padding: 14px;
+    background-color: var(--primary-color);
+    color: var(--tg-theme-button-text-color, #ffffff);
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 20px;
+    cursor: pointer;
+}

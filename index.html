@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hebrew Verbs</title>
+    <!-- Telegram Mini Apps SDK -->
+    <script src="data.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1 id="title">Глаголы</h1>
+            <select id="group-select" onchange="changeGroup()">
+                <option value="0">Все группы</option>
+                <!-- Опции будут добавлены через JS -->
+            </select>
+        </header>
+        
+        <main>
+            <div id="quiz-container" class="card">
+                <h2>Загрузка...</h2>
+            </div>
+            <button id="next-btn" class="tg-btn" style="display: none;" onclick="nextQuestion()">Следующее слово ➔</button>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
