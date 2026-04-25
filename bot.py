@@ -77,6 +77,40 @@ async def ai_request(data: dict = Body(...)):
     except Exception as e:
         return {"answer": f"Ошибка ИИ: {str(e)}"}
 
+@app.post("/generate-words")
+async def generate_words(data: dict = Body(...)):
+    prompt = data.get("prompt", "10 популярных глаголов")
+    
+    sys_prompt = (
+        "Ты — генератор контента. Пользователь просит слова на определенную тему. "
+        "Сгенерируй запрошенное количество глаголов на иврите. "
+        "Твой ответ должен быть СТРОГО валидным массивом JSON. Никакого текста до или после. Никаких блоков ```json. "
+        "Формат каждого объекта: {\"hebrew\": \"глагол с огласовками (никудот)\", \"russian\": \"перевод на русский\"}"
+    )
+    
+    try:
+        response = await ai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": sys_prompt},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=800,
+            temperature=0.7
+        )
+        raw_json = response.choices[0].message.content.strip()
+        # Clean up markdown if AI still adds it
+        if raw_json.startswith("```json"):
+            raw_json = raw_json[7:]
+        if raw_json.endswith("```"):
+            raw_json = raw_json[:-3]
+        
+        import json
+        words = json.loads(raw_json)
+        return {"words": words}
+    except Exception as e:
+        return {"error": str(e)}
+
 @dp.message(CommandStart())
 async def start_cmd(message: types.Message):
     builder = InlineKeyboardBuilder()
