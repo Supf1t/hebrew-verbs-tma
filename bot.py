@@ -84,10 +84,9 @@ async def generate_words(data: dict = Body(...)):
     prompt = data.get("prompt", "10 популярных глаголов")
     
     sys_prompt = (
-        "Ты — генератор контента. Пользователь просит слова на определенную тему. "
-        "Сгенерируй запрошенное количество глаголов на иврите. "
-        "Твой ответ должен быть СТРОГО валидным массивом JSON. Никакого текста до или после. Никаких блоков ```json. "
-        "Формат каждого объекта: {\"hebrew\": \"глагол с огласовками (никудот)\", \"russian\": \"перевод на русский\"}"
+        "Ты — генератор контента. Сгенерируй список глаголов на иврите. "
+        "Верни ответ СТРОГО в формате JSON. Массив объектов с ключами 'hebrew' и 'russian'. "
+        "Пример: [{\"hebrew\": \"כָּתַב\", \"russian\": \"писать\"}]"
     )
     
     try:
@@ -97,19 +96,27 @@ async def generate_words(data: dict = Body(...)):
                 {"role": "system", "content": sys_prompt},
                 {"role": "user", "content": prompt}
             ],
+            response_format={ "type": "json_object" if "JSON" in sys_prompt else "text" },
             max_tokens=800,
             temperature=0.7
         )
-        raw_json = response.choices[0].message.content.strip()
-        # Clean up markdown if AI still adds it
-        if raw_json.startswith("```json"):
-            raw_json = raw_json[7:]
-        if raw_json.endswith("```"):
-            raw_json = raw_json[:-3]
         
+        # В режиме json_object ИИ может вернуть объект {"words": [...]} или просто массив
         import json
-        words = json.loads(raw_json)
-        return {"words": words}
+        res_data = json.loads(response.choices[0].message.content)
+        
+        # Если ИИ завернул всё в ключ (бывает в json_mode), достаем его
+        if isinstance(res_data, dict):
+            for key in ["words", "verbs", "result"]:
+                if key in res_data:
+                    return {"words": res_data[key]}
+            # Если ключей нет, но это один объект (ошибка ИИ), берем значения
+            if len(res_data) == 1:
+                val = list(res_data.values())[0]
+                if isinstance(val, list): return {"words": val}
+            return {"words": [res_data]} # fallback
+            
+        return {"words": res_data}
     except Exception as e:
         return {"error": str(e)}
 

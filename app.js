@@ -342,7 +342,10 @@ async function generateWords() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ prompt: promptStr })
         })
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error(`Ошибка сервера (${res.status}). Попробуйте позже.`);
+            return res.json();
+        })
         .then(data => {
             if (data.error) throw new Error(data.error);
             if (!data.words || data.words.length === 0) throw new Error("Пустой ответ от ИИ");
