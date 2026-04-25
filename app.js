@@ -11,6 +11,28 @@ let currentGroup = 0;
 let currentWord = null;
 let currentOptions = [];
 let isAnswered = false;
+let userStats = { learned: [], counts: {} };
+
+// Обертка для хранилища (CloudStorage для ТГ, localStorage для браузера)
+const storage = {
+    save: (key, value) => {
+        if (tg.isExpanded !== undefined && tg.CloudStorage) {
+            tg.CloudStorage.setItem(key, JSON.stringify(value));
+        } else {
+            localStorage.setItem(key, JSON.stringify(value));
+        }
+    },
+    load: (key, callback) => {
+        if (tg.isExpanded !== undefined && tg.CloudStorage) {
+            tg.CloudStorage.getItem(key, (err, val) => {
+                callback(val ? JSON.parse(val) : null);
+            });
+        } else {
+            const val = localStorage.getItem(key);
+            callback(val ? JSON.parse(val) : null);
+        }
+    }
+};
 
 function initApp() {
     const select = document.getElementById('group-select');
@@ -20,7 +42,20 @@ function initApp() {
         opt.textContent = g.name;
         select.appendChild(opt);
     });
-    nextQuestion();
+    
+    // Загружаем статистику
+    storage.load('verbs_stats', (data) => {
+        if (data) userStats = data;
+        updateProgressUI();
+        nextQuestion();
+    });
+}
+
+function updateProgressUI() {
+    const total = verbsData.length;
+    const learned = userStats.learned.length;
+    const progressEl = document.getElementById('progress-text');
+    if(progressEl) progressEl.textContent = `Выучено: ${learned} / ${total}`;
 }
 
 function changeGroup() {
@@ -45,20 +80,25 @@ function getRandomWords(wordsArray, count, excludeWord) {
 function nextQuestion() {
     isAnswered = false;
     document.getElementById('next-btn').style.display = 'none';
-
+    document.getElementById('ai-section').style.display = 'none';
+    
     // Фильтруем по группе
     let pool = currentGroup === 0 ? verbsData : verbsData.filter(w => w.groupId === currentGroup);
-
-    // Выбираем случайное правильное слово
-    currentWord = pool[Math.floor(Math.random() * pool.length)];
-
-    // Выбираем 3 неправильных варианта из той же группы (или глобально, если мало слов)
+    
+    // Пытаемся давать невыученные слова чаще (80% шанс)
+    let unlearnedPool = pool.filter(w => !userStats.learned.includes(w.id));
+    if (unlearnedPool.length === 0) unlearnedPool = pool; // Если все выучены, повторяем все
+    
+    let targetPool = (Math.random() < 0.8 && unlearnedPool.length > 0) ? unlearnedPool : pool;
+    
+    currentWord = targetPool[Math.floor(Math.random() * targetPool.length)];
+    
+    // Выбираем 3 неправильных варианта
     let wrongOptions = getRandomWords(pool, 3, currentWord);
     if (wrongOptions.length < 3) {
-        wrongOptions = getRandomWords(verbsData, 3, currentWord); // добираем из глобального пула
+        wrongOptions = getRandomWords(verbsData, 3, currentWord);
     }
-
-    // Собираем варианты и перемешиваем
+    
     currentOptions = [
         { ...currentWord, correct: true },
         ...wrongOptions.map(w => ({ ...w, correct: false }))
@@ -99,12 +139,34 @@ function checkAnswer(isCorrect, index) {
 
     if (isCorrect) {
         tg.HapticFeedback.notificationOccurred('success');
+        updateStats(true);
     } else {
         tg.HapticFeedback.notificationOccurred('error');
+        updateStats(false);
     }
-
+    
     document.getElementById('next-btn').style.display = 'block';
-    document.getElementById('ai-section').style.display = 'block'; // Показываем ИИ только после ответа
+    document.getElementById('ai-section').style.display = 'block'; 
+}
+
+function updateStats(isCorrect) {
+    const wid = currentWord.id;
+    if (!userStats.counts[wid]) userStats.counts[wid] = { c: 0, w: 0 };
+    
+    if (isCorrect) {
+        userStats.counts[wid].c += 1;
+        // Если ответил правильно 3 раза и ни разу не ошибся (или баланс +3), считаем выученным
+        if (userStats.counts[wid].c - userStats.counts[wid].w >= 3 && !userStats.learned.includes(wid)) {
+            userStats.learned.push(wid);
+        }
+    } else {
+        userStats.counts[wid].w += 1;
+        // Если ошибся, убираем из выученных
+        userStats.learned = userStats.learned.filter(id => id !== wid);
+    }
+    
+    storage.save('verbs_stats', userStats);
+    updateProgressUI();
 }
 
 // AI Functions
