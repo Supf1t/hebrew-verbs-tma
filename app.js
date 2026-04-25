@@ -37,8 +37,16 @@ const storage = {
 function initApp() {
     storage.load('custom_verbs', (customData) => {
         if (customData && customData.length > 0) {
-            // Добавляем новую группу для сгенерированных
-            groups.push({ id: 999, name: "✨ Мои сгенерированные", color: '#8b5cf6' });
+            // Восстанавливаем динамические группы
+            const cGroups = {};
+            customData.forEach(w => {
+                if (w.groupId && w.groupName && !cGroups[w.groupId]) {
+                    cGroups[w.groupId] = w.groupName;
+                }
+            });
+            Object.keys(cGroups).forEach(gId => {
+                groups.push({ id: parseInt(gId), name: cGroups[gId], color: '#8b5cf6' });
+            });
             verbsData.push(...customData);
         }
 
@@ -291,7 +299,8 @@ async function askAi(type) {
 function openGenModal() {
     document.getElementById('gen-modal').style.display = 'block';
     document.getElementById('gen-status').textContent = '';
-    document.getElementById('gen-input').value = '';
+    document.getElementById('gen-topic').value = '';
+    document.getElementById('gen-amount').value = '10';
 }
 
 function closeGenModal() {
@@ -299,26 +308,37 @@ function closeGenModal() {
 }
 
 async function generateWords() {
-    const input = document.getElementById('gen-input').value.trim();
-    if (!input) return;
+    const topic = document.getElementById('gen-topic').value.trim();
+    const amount = document.getElementById('gen-amount').value || 10;
+    
+    if (!topic) {
+        document.getElementById('gen-status').textContent = "Введите тему!";
+        return;
+    }
     
     const statusEl = document.getElementById('gen-status');
     statusEl.textContent = "ИИ думает... Это займет 10-20 секунд.";
+    
+    const promptStr = `Сгенерируй ${amount} глаголов на тему: ${topic}`;
     
     try {
         const response = await fetch(`${BACKEND_URL}/generate-words`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt: input })
+            body: JSON.stringify({ prompt: promptStr })
         });
         const data = await response.json();
         
         if (data.error) throw new Error(data.error);
         if (!data.words || data.words.length === 0) throw new Error("Пустой ответ от ИИ");
         
+        const newGroupId = Date.now(); // Уникальный ID для новой группы
+        const groupName = "✨ " + topic;
+        
         const newVerbs = data.words.map((w, i) => ({
-            id: 'c_' + Date.now() + '_' + i,
-            groupId: 999,
+            id: 'c_' + newGroupId + '_' + i,
+            groupId: newGroupId,
+            groupName: groupName, // Сохраняем имя группы прямо в слове
             hebrew: w.hebrew,
             russian: w.russian
         }));
@@ -327,21 +347,23 @@ async function generateWords() {
             const allCustom = (existing || []).concat(newVerbs);
             storage.save('custom_verbs', allCustom);
             
-            if (!groups.find(g => g.id === 999)) {
-                groups.push({ id: 999, name: "✨ Мои сгенерированные", color: '#8b5cf6' });
-                const select = document.getElementById('group-select');
-                const opt = document.createElement('option');
-                opt.value = 999;
-                opt.textContent = "✨ Мои сгенерированные";
-                select.appendChild(opt);
-            }
+            // Создаем новую группу
+            groups.push({ id: newGroupId, name: groupName, color: '#8b5cf6' });
+            
+            // Добавляем в выпадающий список
+            const select = document.getElementById('group-select');
+            const opt = document.createElement('option');
+            opt.value = newGroupId;
+            opt.textContent = groupName;
+            select.appendChild(opt);
+            
             verbsData.push(...newVerbs);
             
-            statusEl.textContent = `Успешно добавлено ${newVerbs.length} слов!`;
+            statusEl.textContent = `Группа "${topic}" (${newVerbs.length} слов) успешно создана!`;
             setTimeout(() => {
                 closeGenModal();
                 if (isDictView) renderDictionary();
-            }, 1500);
+            }, 2000);
         });
         
     } catch(e) {
