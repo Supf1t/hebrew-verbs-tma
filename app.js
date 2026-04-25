@@ -297,6 +297,7 @@ async function askAi(type) {
 
 // AI Word Generation
 function openGenModal() {
+    tg.HapticFeedback.impactOccurred('medium');
     document.getElementById('gen-modal').style.display = 'block';
     document.getElementById('gen-status').textContent = '';
     document.getElementById('gen-topic').value = '';
