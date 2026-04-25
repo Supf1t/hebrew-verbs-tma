@@ -155,8 +155,8 @@ function updateStats(isCorrect) {
     
     if (isCorrect) {
         userStats.counts[wid].c += 1;
-        // Если ответил правильно 3 раза и ни разу не ошибся (или баланс +3), считаем выученным
-        if (userStats.counts[wid].c - userStats.counts[wid].w >= 3 && !userStats.learned.includes(wid)) {
+        // Если ответил правильно 5 раз и ни разу не ошибся (или баланс +5), считаем выученным
+        if (userStats.counts[wid].c - userStats.counts[wid].w >= 5 && !userStats.learned.includes(wid)) {
             userStats.learned.push(wid);
         }
     } else {
