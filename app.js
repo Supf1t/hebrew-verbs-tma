@@ -108,7 +108,7 @@ function checkAnswer(isCorrect, index) {
 }
 
 // AI Functions
-const BACKEND_URL = "https://cavalry-amends-nimble.ngrok-free.dev"; // Обновлено через ngrok
+const BACKEND_URL = "https://hebrew-verbs-tma.onrender.com"; // Постоянный адрес на Render
 
 function showAiMenu() {
     document.getElementById('ai-modal').style.display = 'block';
