@@ -52,10 +52,11 @@ function initApp() {
 }
 
 function updateProgressUI() {
-    const total = verbsData.length;
-    const learned = userStats.learned.length;
+    let pool = currentGroup === 0 ? verbsData : verbsData.filter(w => w.groupId === currentGroup);
+    const total = pool.length;
+    const learned = pool.filter(w => userStats.learned.includes(w.id)).length;
     const progressEl = document.getElementById('progress-text');
-    if(progressEl) progressEl.textContent = `Выучено: ${learned} / ${total}`;
+    if(progressEl) progressEl.textContent = `Выучено в группе: ${learned} / ${total}`;
 }
 
 function changeGroup() {
@@ -104,7 +105,23 @@ function nextQuestion() {
         ...wrongOptions.map(w => ({ ...w, correct: false }))
     ].sort(() => 0.5 - Math.random());
 
+    updateProgressUI();
     renderQuiz();
+}
+
+function speakHebrew(text, event) {
+    if (event) event.stopPropagation(); // Чтобы не нажималась кнопка ответа
+    if ('speechSynthesis' in window) {
+        // Отменяем предыдущую озвучку
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'he-IL';
+        // Немного замедлим, чтобы было понятнее новичкам
+        utterance.rate = 0.85; 
+        window.speechSynthesis.speak(utterance);
+    } else {
+        tg.showAlert("Озвучка не поддерживается на этом устройстве");
+    }
 }
 
 function renderQuiz() {
@@ -112,9 +129,14 @@ function renderQuiz() {
     container.innerHTML = `
         <h2 style="margin-bottom: 24px; font-size: 32px; font-weight: bold;">${currentWord.russian}</h2>
         ${currentOptions.map((opt, index) => `
-            <button class="quiz-option" id="btn-${index}" onclick="checkAnswer(${opt.correct}, ${index})">
-                ${opt.hebrew}
-            </button>
+            <div style="display: flex; gap: 8px; margin: 10px 0;">
+                <button class="quiz-option" style="margin: 0;" id="btn-${index}" onclick="checkAnswer(${opt.correct}, ${index})">
+                    ${opt.hebrew}
+                </button>
+                <button onclick="speakHebrew('${opt.hebrew}', event)" style="background: var(--bg-color); border: 1px solid var(--primary-color); border-radius: 8px; padding: 0 15px; cursor: pointer; font-size: 20px; transition: 0.2s;">
+                    🔊
+                </button>
+            </div>
         `).join('')}
     `;
 }
